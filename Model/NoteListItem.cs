@@ -12,5 +12,7 @@ namespace RichNoteApp.Model
         public int Id { get; set; }
         public string Title { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public int CategoryId { get; set; } // 关联分类ID
+        public string PreviewContent { get; set; } = string.Empty; // 笔记内容预览
     }
 }
