@@ -1,0 +1,172 @@
+﻿<Window x:Class="RichNoteApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="富云笔记" Height="750" Width="1200"
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F6FA">
+    <!-- 整体背景色 -->
+
+    <Window.Resources>
+        <!-- 定义一些通用样式 -->
+        <Style x:Key="ModernButton" TargetType="Button">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="0">
+        <Grid.ColumnDefinitions>
+            <!-- 左侧列表：固定 280px -->
+            <ColumnDefinition Width="280"/>
+            <!-- 分隔线 -->
+            <ColumnDefinition Width="1"/>
+            <!-- 右侧编辑：剩余空间 -->
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- === 左侧：笔记列表区域 === -->
+        <Border Grid.Column="0" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,1,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- 顶部操作栏 -->
+                <StackPanel Grid.Row="0" Margin="20,20,20,15">
+                    <Button Content="➕ 新建笔记" Click="BtnNew_Click" 
+                            Background="#007ACC" Style="{StaticResource ModernButton}" Margin="0,0,0,10"/>
+                    <Button Content="🗑️ 删除当前" Click="BtnDelete_Click" 
+                            Background="#DC3545" Style="{StaticResource ModernButton}"/>
+                </StackPanel>
+
+                <!-- 笔记列表 -->
+                <ListBox x:Name="lstNotes" Grid.Row="1" 
+                         SelectionChanged="lstNotes_SelectionChanged"
+                         Margin="10,0"
+                         BorderThickness="0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="Bd" Padding="10,12" CornerRadius="6" Margin="0,2">
+                                            <ContentPresenter/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="#E3F2FD"/>
+                                                <Setter TargetName="Bd" Property="BorderBrush" Value="#2196F3"/>
+                                                <Setter TargetName="Bd" Property="BorderThickness" Value="1"/>
+                                            </Trigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="#F5F5F5"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <TextBlock Text="{Binding Title}" 
+                                           FontWeight="SemiBold" 
+                                           FontSize="14" 
+                                           Foreground="#333"
+                                           TextTrimming="CharacterEllipsis"
+                                           MaxWidth="220"/>
+                                <TextBlock Text="{Binding UpdatedAt, StringFormat='{}{0:MM-dd HH:mm}'}" 
+                                           FontSize="11" 
+                                           Foreground="#999" 
+                                           Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- 底部统计 -->
+                <Border Grid.Row="2" Background="#FAFAFA" BorderBrush="#EEEEEE" BorderThickness="0,1,0,0" Padding="15,10">
+                    <TextBlock x:Name="TxtNoteCount" 
+                               Text="共 0 条笔记" 
+                               Foreground="#666" 
+                               FontSize="12" 
+                               HorizontalAlignment="Center"/>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- === 分隔线 === -->
+        <Border Grid.Column="1" Background="#E0E0E0"/>
+
+        <!-- === 右侧：编辑区域 === -->
+        <Grid Grid.Column="2" Background="White">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- 标题输入 -->
+            <Grid Grid.Row="0" Margin="30,25,30,15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox x:Name="TxtTitle" 
+                         Grid.Column="0"
+                         FontSize="24" 
+                         FontWeight="Bold" 
+                         BorderThickness="0,0,0,2" 
+                         BorderBrush="#EEEEEE"
+                         TextChanged="TxtTitle_TextChanged"
+                         VerticalContentAlignment="Center"
+                         Background="Transparent"
+                         Padding="5,5"/>
+
+                <Button Grid.Column="1" Content="💾 保存" Click="BtnSave_Click" 
+                        Margin="20,0,0,0" 
+                        Background="#28A745" 
+                        Style="{StaticResource ModernButton}"
+                        MinWidth="100"/>
+            </Grid>
+
+            <!-- WebView2 编辑器 -->
+            <wv2:WebView2 x:Name="WebViewEditor" Grid.Row="1" Margin="30,0,30,0"/>
+
+            <!-- 状态栏 -->
+            <Border Grid.Row="2" Background="#FAFAFA" BorderBrush="#EEEEEE" BorderThickness="0,1,0,0" Padding="15,8">
+                <Grid>
+                    <TextBlock x:Name="TxtStatus" Text="就绪" Foreground="#888" FontSize="12" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="TxtWordCount" Text="0 字" Foreground="#888" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
